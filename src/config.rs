@@ -4,6 +4,7 @@ use serde::Deserialize;
 #[derive(Clone, Deserialize)]
 pub struct Config {
     pub trade: TradeConfig,
+    pub macd: MacdConfig,
     pub binance: BinanceConfig,
 }
 
@@ -11,6 +12,13 @@ pub struct Config {
 pub struct TradeConfig {
     pub symbol: String,
     pub interval: String,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct MacdConfig {
+    pub fast_period: usize, // default 12
+    pub slow_period: usize, // default 26
+    pub signal_period: usize, // default 9
 }
 
 #[derive(Clone, Deserialize)]

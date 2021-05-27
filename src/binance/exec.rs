@@ -1,4 +1,5 @@
 use crate::binance::msg::ContinuousKline;
+use crate::config::Config;
 use futures::StreamExt;
 use serde_json::{from_str, from_value, Value};
 use ta::{indicators::MovingAverageConvergenceDivergence as Macd, Next};
@@ -12,8 +13,13 @@ pub struct Binance {
 
 impl Binance {
     pub fn new() -> Self {
+        let config = Config::from_env().unwrap();
         Self {
-            macd: Macd::default(), // TODO make this variable
+            macd: Macd::new(
+                config.macd.fast_period,
+                config.macd.slow_period,
+                config.macd.signal_period
+            ).unwrap(),
         }
     }
 
@@ -32,6 +38,10 @@ impl Binance {
                     let mut txt: Value = from_str(&txt).unwrap();
                     let kline: ContinuousKline = from_value(txt["k"].take()).unwrap();
                     log::info!("Price of {} : {}", symbol, kline.close);
+                    if kline.closed {
+                        self.macd.clone().next(kline.close);
+                        log::info!("Candle closed");
+                    }
                 }
                 _ => (),
             }
