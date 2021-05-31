@@ -1,5 +1,6 @@
 pub mod binance;
 pub mod config;
+pub mod macd;
 
 use crate::binance::exec::Binance;
 use crate::config::Config;
@@ -14,5 +15,5 @@ async fn main() {
     env::set_var("RUST_LOG", "info");
     env_logger::init();
 
-    Binance::new().connect_kline(&config.trade.symbol, &config.trade.interval).await.unwrap();
+    Binance::new().await.connect(config.trade.symbol, config.trade.interval).await.unwrap();
 }

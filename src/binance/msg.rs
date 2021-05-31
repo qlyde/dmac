@@ -1,7 +1,7 @@
 use serde::{de, Deserialize, Deserializer};
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct ContinuousKline {
+pub struct Kline {
     #[serde(rename = "t")]
     pub start: u64,
     #[serde(rename = "T")]
