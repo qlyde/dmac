@@ -26,7 +26,8 @@ pub struct Kline {
 }
 
 fn f64_from_str<'de, D>(deserializer: D) -> Result<f64, D::Error>
-    where D: Deserializer<'de>
+where
+    D: Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
     s.parse::<f64>().map_err(de::Error::custom)

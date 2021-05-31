@@ -15,5 +15,9 @@ async fn main() {
     env::set_var("RUST_LOG", "info");
     env_logger::init();
 
-    Binance::new().await.connect(config.trade.symbol, config.trade.interval).await.unwrap();
+    Binance::new()
+        .await
+        .connect(config.trade.symbol, config.trade.interval)
+        .await
+        .unwrap();
 }

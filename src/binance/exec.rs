@@ -4,10 +4,26 @@ use crate::macd::Macd;
 use futures::StreamExt;
 use reqwest::Client;
 use serde_json::{from_str, from_value, Value};
-use tokio_tungstenite::{connect_async, tungstenite::{Error, protocol::Message}};
+use tokio_tungstenite::{
+    connect_async,
+    tungstenite::{self, protocol::Message},
+};
 
 const BASE_HTTP: &str = "https://fapi.binance.com";
 const BASE_WS: &str = "wss://fstream.binance.com";
+
+pub async fn unsigned_req(endpoint: String, qstring: String) -> Result<String, reqwest::Error> {
+    let config = Config::from_env().unwrap();
+    let url = format!("{}{}?{}", BASE_HTTP, endpoint, qstring);
+    let body = Client::new()
+        .get(url)
+        .header("X-MBX-APIKEY", config.binance.api)
+        .send()
+        .await?
+        .text()
+        .await?;
+    Ok(body)
+}
 
 pub struct Binance {
     pub macd: Macd,
@@ -28,21 +44,15 @@ impl Binance {
             config.macd.signal_period,
         );
 
-        let url = format!(
-            "{}/fapi/v1/klines?symbol={}&interval={}&limit={}",
-            BASE_HTTP,
-            config.trade.symbol,
-            config.trade.interval,
-            1500,
-        );
-
-        let body = Client::new()
-            .get(url)
-            .header("X-MBX-APIKEY", config.binance.api)
-            .send()
-            .await?
-            .text()
-            .await?;
+        let body = unsigned_req(
+            "/fapi/v1/klines".to_string(),
+            format!(
+                "symbol={}&interval={}&limit={}",
+                config.trade.symbol, config.trade.interval, 1500,
+            ),
+        )
+        .await
+        .unwrap();
 
         let klines: Vec<Value> = from_str(&body).unwrap();
         for i in 0..(klines.len() - 1) { // skip last (current) candle
@@ -54,7 +64,7 @@ impl Binance {
         Ok(macd)
     }
 
-    pub async fn connect(&mut self, symbol: String, interval: String) -> Result<(), Error> {
+    pub async fn connect(&mut self, symbol: String, interval: String) -> Result<(), tungstenite::Error> {
         let uri = format!("{}/ws/{}@kline_{}", BASE_WS, symbol, interval);
         log::info!("Connecting to : {}", uri);
         let (mut ws, _) = connect_async(uri).await?;

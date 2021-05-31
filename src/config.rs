@@ -16,8 +16,8 @@ pub struct TradeConfig {
 
 #[derive(Clone, Deserialize)]
 pub struct MacdConfig {
-    pub fast_period: usize, // default 12
-    pub slow_period: usize, // default 26
+    pub fast_period: usize,   // default 12
+    pub slow_period: usize,   // default 26
     pub signal_period: usize, // default 9
 }
 
