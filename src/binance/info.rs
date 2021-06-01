@@ -14,12 +14,14 @@ use tokio_tungstenite::{
 };
 
 pub struct Binance {
-    pub macd: Macd,
+    macd: Macd,
+    curr_macd: Macd,
 }
 
 impl Binance {
     pub async fn new() -> Self {
         Self {
+            curr_macd: Binance::init_macd().await.unwrap(),
             macd: Binance::init_macd().await.unwrap(),
         }
     }
@@ -47,7 +49,7 @@ impl Binance {
             macd.next(close);
         }
 
-        Broker::<SystemBroker>::issue_async(MacdUpdate(macd.clone()));
+        Broker::<SystemBroker>::issue_async(MacdUpdate(macd.divergence));
         log::info!("Initialized MACD : {}", macd.divergence);
         Ok(macd)
     }
@@ -69,9 +71,16 @@ impl Binance {
 
                     if kline.closed {
                         self.macd.next(kline.close);
-                        Broker::<SystemBroker>::issue_async(MacdUpdate(self.macd.clone()));
+                        Broker::<SystemBroker>::issue_async(MacdUpdate(self.macd.divergence));
                         log::info!("Updated MACD : {}", self.macd.divergence);
+                    } else {
+                        self.curr_macd.next(kline.close);
+                        log::info!("Updated curr MACD : {}", self.curr_macd.divergence);
+                        Broker::<SystemBroker>::issue_async(MacdUpdate(self.curr_macd.divergence));
                     }
+
+                    self.curr_macd = self.macd.clone();
+                    log::debug!("Reset curr MACD : {}", self.curr_macd.divergence);
                 }
                 _ => (),
             }

@@ -2,13 +2,12 @@ use crate::binance::{
     msg::*,
     utils::*,
 };
-use crate::macd::Macd;
 use actix::prelude::*;
 use actix_broker::BrokerSubscribe;
 use reqwest::Method;
 
 pub struct Trader {
-    last: Option<Macd>,
+    last: Option<f64>,
 }
 
 impl Actor for Trader {
@@ -28,9 +27,9 @@ impl Handler<MacdUpdate> for Trader {
     type Result = ();
 
     fn handle(&mut self, msg: MacdUpdate, _ctx: &mut Self::Context) -> Self::Result {
-        if self.last.is_some() && self.last.as_ref().unwrap().divergence * msg.0.divergence < 0.0 {
+        if self.last.is_some() && self.last.unwrap() * msg.0 < 0.0 {
             // new macd has a different sign (ie. macd and signal series have crossed)
-            if msg.0.divergence > 0.0 {
+            if msg.0 > 0.0 {
                 log::info!("BUY");
             } else {
                 log::info!("SELL");
