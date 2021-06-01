@@ -45,6 +45,7 @@ fn main() {
         trader.spawn_fn(|| {
             Trader::new(
                 cfg.trade.symbol,
+                cfg.trade.amount,
                 cfg.trade.threshold,
             ).start();
         })
