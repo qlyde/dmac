@@ -26,10 +26,15 @@ impl Actor for Trader {
 
 impl Handler<MacdUpdate> for Trader {
     type Result = ();
+
     fn handle(&mut self, msg: MacdUpdate, _ctx: &mut Self::Context) -> Self::Result {
         if self.last.is_some() && self.last.as_ref().unwrap().divergence * msg.0.divergence < 0.0 {
             // new macd has a different sign (ie. macd and signal series have crossed)
-            
+            if msg.0.divergence > 0.0 {
+                log::info!("BUY");
+            } else {
+                log::info!("SELL");
+            }
         }
 
         self.last = Some(msg.0);

@@ -4,6 +4,7 @@ use crate::binance::{
 };
 use crate::config::Config;
 use crate::macd::Macd;
+use actix_broker::{Broker, SystemBroker};
 use futures::StreamExt;
 use reqwest::Method;
 use serde_json::{from_str, from_value, Value};
@@ -46,6 +47,7 @@ impl Binance {
             macd.next(close);
         }
 
+        Broker::<SystemBroker>::issue_async(MacdUpdate(macd.clone()));
         log::info!("Initialized MACD : {}", macd.divergence);
         Ok(macd)
     }
@@ -67,6 +69,7 @@ impl Binance {
 
                     if kline.closed {
                         self.macd.next(kline.close);
+                        Broker::<SystemBroker>::issue_async(MacdUpdate(self.macd.clone()));
                         log::info!("Updated MACD : {}", self.macd.divergence);
                     }
                 }
