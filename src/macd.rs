@@ -1,5 +1,6 @@
 use ta::{indicators::ExponentialMovingAverage as Ema, Next};
 
+#[derive(Clone)]
 pub struct Macd {
     pub divergence: f64, // difference between signal series and macd series
     macd: f64,           // macd series: difference between slow ema and fast ema

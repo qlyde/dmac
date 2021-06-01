@@ -1,9 +1,10 @@
+use crate::macd::Macd;
 use actix::prelude::*;
 use serde::{de, Deserialize, Deserializer};
 
 #[derive(Clone, Message)]
 #[rtype(result = "()")]
-pub struct MacdUpdate(f64);
+pub struct MacdUpdate(Macd);
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Kline {
