@@ -23,5 +23,4 @@ sha2 = "0.9"
 strum = "0.21"
 strum_macros = "0.21"
 ta = "0.4"
-tokio = { version = "1.6", features = ["rt", "rt-multi-thread", "macros"] }
 tokio-tungstenite = { version = "0.14", features = [ "native-tls", "rustls-tls" ] }
