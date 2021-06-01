@@ -88,12 +88,12 @@ impl Binance {
                         log::info!("Updated MACD : {}", self.macd.divergence);
                     } else {
                         self.macd_tmp.next(kline.close);
-                        log::info!("Updated curr MACD : {}", self.macd_tmp.divergence);
+                        log::info!("Updated temp MACD : {}", self.macd_tmp.divergence);
                         Broker::<SystemBroker>::issue_async(MacdUpdate(self.macd_tmp.divergence));
                     }
 
                     self.macd_tmp = self.macd.clone();
-                    log::debug!("Reset curr MACD : {}", self.macd_tmp.divergence);
+                    log::debug!("Reset temp MACD : {}", self.macd_tmp.divergence);
                 }
                 _ => (),
             }
