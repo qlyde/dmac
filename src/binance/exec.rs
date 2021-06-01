@@ -38,8 +38,7 @@ impl Binance {
                 "symbol={}&interval={}&limit={}",
                 config.trade.symbol, config.trade.interval, 1500,
             ),
-        )
-        .await?;
+        ).await?;
 
         let klines: Vec<Value> = from_str(&response).unwrap();
         for i in 0..(klines.len() - 1) { // skip last (current) candle
