@@ -5,7 +5,7 @@ pub struct Macd {
     pub divergence: f64, // difference between signal series and macd series
     fast_ema: Ema,
     slow_ema: Ema,
-    signal_ema: Ema,     // signal series: ema of the macd series
+    signal_ema: Ema, // signal series: ema of the macd series
 }
 
 impl Macd {
