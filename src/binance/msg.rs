@@ -4,7 +4,7 @@ use serde::{de, Deserialize, Deserializer};
 
 #[derive(Clone, Message)]
 #[rtype(result = "()")]
-pub struct MacdUpdate(Macd);
+pub struct MacdUpdate(pub Macd);
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Kline {
