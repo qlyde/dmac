@@ -24,9 +24,9 @@ pub fn timestamp() -> String {
 
 pub async fn unsigned_req(method: Method, endpoint: String, qstring: String) -> Result<String, reqwest::Error> {
     let config = Config::from_env().unwrap();
-    let url = format!("{}{}", BASE_HTTP, endpoint);
+    let mut url = format!("{}{}", BASE_HTTP, endpoint);
     if !qstring.is_empty() {
-        url.push_str(format!("?{}", qstring));
+        url.push_str(&format!("?{}", qstring));
     }
     let body = Client::new()
         .request(method, url)
@@ -45,7 +45,7 @@ pub async fn signed_req(method: Method, endpoint: String, mut qstring: String) -
     if !qstring.is_empty() {
         qstring.push('&');
     }
-    qstring.push_str(format!("timestamp={}", ts));
+    qstring.push_str(&format!("timestamp={}", ts));
     let signature = digest(qstring.as_bytes(), config.binance.sec.as_bytes());
 
     let url = format!("{}{}?{}&signature={}", BASE_HTTP, endpoint, qstring, signature);
