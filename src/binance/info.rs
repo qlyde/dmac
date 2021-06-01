@@ -55,7 +55,7 @@ impl Binance {
     }
 
     pub async fn connect(&mut self, symbol: String, interval: String) -> Result<(), tungstenite::Error> {
-        let uri = format!("{}/ws/{}@kline_{}", BASE_WS, symbol, interval);
+        let uri = format!("{}/ws/{}@kline_{}", BASE_WS, symbol.to_lowercase(), interval);
         log::info!("Connecting to : {}", uri);
         let (mut ws, _) = connect_async(uri).await?;
 

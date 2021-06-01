@@ -12,6 +12,7 @@ pub struct Config {
 pub struct TradeConfig {
     pub symbol: String,
     pub interval: String,
+    pub leverage: u64,
 }
 
 #[derive(Clone, Deserialize)]

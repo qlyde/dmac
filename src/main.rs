@@ -8,6 +8,7 @@ pub mod macd;
 use crate::binance::{
     info::Binance,
     trader::Trader,
+    utils::set_leverage,
 };
 use crate::config::Config;
 use actix::prelude::*;
@@ -24,6 +25,8 @@ fn main() {
 
     let sys = System::new();
     sys.block_on(async move {
+        set_leverage(config.trade.symbol.clone(), config.trade.leverage).await.unwrap();
+
         let info = Arbiter::new();
         info.spawn(async {
             Binance::new()

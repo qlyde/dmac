@@ -66,3 +66,15 @@ pub async fn signed_req(method: Method, endpoint: String, mut qstring: String) -
         .await?;
     Ok(response)
 }
+
+pub async fn set_leverage(symbol: String, leverage: u64) -> Result<(), reqwest::Error> {
+    signed_req(
+        Method::POST,
+        "/fapi/v1/leverage".to_string(),
+        format!(
+            "symbol={}&leverage={}",
+            symbol, leverage,
+        ),
+    ).await?;
+    Ok(())
+}
