@@ -7,6 +7,14 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub const BASE_HTTP: &str = "https://fapi.binance.com";
 pub const BASE_WS: &str = "wss://fstream.binance.com";
 
+#[derive(AsRefStr)]
+pub enum Side {
+    #[strum(serialize = "BUY")]
+    Buy,
+    #[strum(serialize = "SELL")]
+    Sell,
+}
+
 pub fn digest(message: &[u8], key: &[u8]) -> String {
     type HmacSha256 = Hmac<Sha256>;
     let mut mac = HmacSha256::new_from_slice(key).unwrap();
@@ -28,14 +36,14 @@ pub async fn unsigned_req(method: Method, endpoint: String, qstring: String) -> 
     if !qstring.is_empty() {
         url.push_str(&format!("?{}", qstring));
     }
-    let body = Client::new()
+    let response = Client::new()
         .request(method, url)
         .header("X-MBX-APIKEY", config.binance.api)
         .send()
         .await?
         .text()
         .await?;
-    Ok(body)
+    Ok(response)
 }
 
 pub async fn signed_req(method: Method, endpoint: String, mut qstring: String) -> Result<String, reqwest::Error> {
@@ -49,12 +57,12 @@ pub async fn signed_req(method: Method, endpoint: String, mut qstring: String) -
     let signature = digest(qstring.as_bytes(), config.binance.sec.as_bytes());
 
     let url = format!("{}{}?{}&signature={}", BASE_HTTP, endpoint, qstring, signature);
-    let body = Client::new()
+    let response = Client::new()
         .request(method, url)
         .header("X-MBX-APIKEY", config.binance.api)
         .send()
         .await?
         .text()
         .await?;
-    Ok(body)
+    Ok(response)
 }

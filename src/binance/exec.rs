@@ -1,5 +1,5 @@
 use crate::binance::{
-    msg::Kline,
+    msg::*,
     utils::*,
 };
 use crate::config::Config;
@@ -31,7 +31,7 @@ impl Binance {
             config.macd.signal_period,
         );
 
-        let body = unsigned_req(
+        let response = unsigned_req(
             Method::GET,
             "/fapi/v1/klines".to_string(),
             format!(
@@ -42,7 +42,7 @@ impl Binance {
         .await
         .unwrap();
 
-        let klines: Vec<Value> = from_str(&body).unwrap();
+        let klines: Vec<Value> = from_str(&response).unwrap();
         for i in 0..(klines.len() - 1) { // skip last (current) candle
             let close = klines[i][4].as_str().unwrap().parse::<f64>().unwrap();
             macd.next(close);
