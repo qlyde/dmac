@@ -1,29 +1,16 @@
-use crate::binance::msg::Kline;
+use crate::binance::{
+    msg::Kline,
+    utils::*,
+};
 use crate::config::Config;
 use crate::macd::Macd;
 use futures::StreamExt;
-use reqwest::Client;
+use reqwest::Method;
 use serde_json::{from_str, from_value, Value};
 use tokio_tungstenite::{
     connect_async,
     tungstenite::{self, protocol::Message},
 };
-
-const BASE_HTTP: &str = "https://fapi.binance.com";
-const BASE_WS: &str = "wss://fstream.binance.com";
-
-pub async fn unsigned_req(endpoint: String, qstring: String) -> Result<String, reqwest::Error> {
-    let config = Config::from_env().unwrap();
-    let url = format!("{}{}?{}", BASE_HTTP, endpoint, qstring);
-    let body = Client::new()
-        .get(url)
-        .header("X-MBX-APIKEY", config.binance.api)
-        .send()
-        .await?
-        .text()
-        .await?;
-    Ok(body)
-}
 
 pub struct Binance {
     pub macd: Macd,
@@ -45,6 +32,7 @@ impl Binance {
         );
 
         let body = unsigned_req(
+            Method::GET,
             "/fapi/v1/klines".to_string(),
             format!(
                 "symbol={}&interval={}&limit={}",
