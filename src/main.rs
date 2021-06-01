@@ -25,20 +25,28 @@ fn main() {
 
     let sys = System::new();
     sys.block_on(async move {
+        // set account leverage for trade symbol
         set_leverage(config.trade.symbol.clone(), config.trade.leverage).await.unwrap();
 
+        let cfg = config.clone();
         let info = Arbiter::new();
         info.spawn(async {
-            Binance::new()
-                .await
-                .connect(config.trade.symbol, config.trade.interval)
-                .await
-                .unwrap();
+            Binance::new(
+                cfg.trade.symbol,
+                cfg.trade.interval,
+                cfg.macd.fast_period,
+                cfg.macd.slow_period,
+                cfg.macd.signal_period,
+            ).await.connect().await.unwrap();
         });
 
+        let cfg = config.clone();
         let trader = Arbiter::new();
         trader.spawn_fn(|| {
-            Trader::new().start();
+            Trader::new(
+                cfg.trade.symbol,
+                cfg.trade.threshold,
+            ).start();
         })
     });
 

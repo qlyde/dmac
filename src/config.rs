@@ -13,6 +13,8 @@ pub struct TradeConfig {
     pub symbol: String,
     pub interval: String,
     pub leverage: u64,
+    pub amount: f64,
+    pub threshold: f64,
 }
 
 #[derive(Clone, Deserialize)]

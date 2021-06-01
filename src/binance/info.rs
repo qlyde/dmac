@@ -2,7 +2,6 @@ use crate::binance::{
     msg::*,
     utils::*,
 };
-use crate::config::Config;
 use crate::macd::Macd;
 use actix_broker::{Broker, SystemBroker};
 use futures::StreamExt;
@@ -14,32 +13,46 @@ use tokio_tungstenite::{
 };
 
 pub struct Binance {
+    symbol: String,
+    interval: String,
     macd: Macd,
-    curr_macd: Macd,
+    macd_tmp: Macd,
 }
 
 impl Binance {
-    pub async fn new() -> Self {
+    pub async fn new(
+        symbol: String,
+        interval: String,
+        fast_period: usize,
+        slow_period: usize,
+        signal_period: usize,
+    ) -> Self {
+        let macd = Binance::init_macd(
+            symbol.clone(), interval.clone(), fast_period, slow_period, signal_period
+        ).await.unwrap();
         Self {
-            curr_macd: Binance::init_macd().await.unwrap(),
-            macd: Binance::init_macd().await.unwrap(),
+            symbol: symbol,
+            interval: interval,
+            macd_tmp: macd.clone(),
+            macd: macd,
         }
     }
 
-    async fn init_macd() -> Result<Macd, reqwest::Error> {
-        let config = Config::from_env().unwrap();
-        let mut macd = Macd::new(
-            config.macd.fast_period,
-            config.macd.slow_period,
-            config.macd.signal_period,
-        );
+    async fn init_macd(
+        symbol: String,
+        interval: String,
+        fast_period: usize,
+        slow_period: usize,
+        signal_period: usize,
+    ) -> Result<Macd, reqwest::Error> {
+        let mut macd = Macd::new(fast_period, slow_period, signal_period);
 
         let response = unsigned_req(
             Method::GET,
             "/fapi/v1/klines".to_string(),
             format!(
                 "symbol={}&interval={}&limit={}",
-                config.trade.symbol, config.trade.interval, 1500,
+                symbol, interval, 1500, // use data from past 1499 candles
             ),
         ).await?;
 
@@ -54,8 +67,8 @@ impl Binance {
         Ok(macd)
     }
 
-    pub async fn connect(&mut self, symbol: String, interval: String) -> Result<(), tungstenite::Error> {
-        let uri = format!("{}/ws/{}@kline_{}", BASE_WS, symbol.to_lowercase(), interval);
+    pub async fn connect(&mut self) -> Result<(), tungstenite::Error> {
+        let uri = format!("{}/ws/{}@kline_{}", BASE_WS, self.symbol.to_lowercase(), self.interval);
         log::info!("Connecting to : {}", uri);
         let (mut ws, _) = connect_async(uri).await?;
 
@@ -74,13 +87,13 @@ impl Binance {
                         Broker::<SystemBroker>::issue_async(MacdUpdate(self.macd.divergence));
                         log::info!("Updated MACD : {}", self.macd.divergence);
                     } else {
-                        self.curr_macd.next(kline.close);
-                        log::info!("Updated curr MACD : {}", self.curr_macd.divergence);
-                        Broker::<SystemBroker>::issue_async(MacdUpdate(self.curr_macd.divergence));
+                        self.macd_tmp.next(kline.close);
+                        log::info!("Updated curr MACD : {}", self.macd_tmp.divergence);
+                        Broker::<SystemBroker>::issue_async(MacdUpdate(self.macd_tmp.divergence));
                     }
 
-                    self.curr_macd = self.macd.clone();
-                    log::debug!("Reset curr MACD : {}", self.curr_macd.divergence);
+                    self.macd_tmp = self.macd.clone();
+                    log::debug!("Reset curr MACD : {}", self.macd_tmp.divergence);
                 }
                 _ => (),
             }
